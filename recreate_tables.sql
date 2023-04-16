@@ -38,7 +38,7 @@ CREATE TABLE Professors (
 );
 
 CREATE TABLE Enrollment (
-  StudentGlobalId INT NOT NULL,
+  StudentGlobalId varchar(8) NOT NULL,
   SectionId INT NOT NULL,
   CONSTRAINT PK_Enrollment PRIMARY KEY (StudentGlobalId, SectionId),
   CONSTRAINT FK_Enrollment_Student FOREIGN KEY (StudentGlobalId)
@@ -47,20 +47,28 @@ CREATE TABLE Enrollment (
     REFERENCES Sections (SectionId)
 );
 
---CREATE UNIQUE INDEX UQ_Sections_Room_Time
---  ON Sections (RoomId, Sectiontime);
+-- can't take a class in the same room at the same time
+CREATE UNIQUE INDEX UQ_Sections_Room_Time
+  ON Sections (RoomId, Sectiontime);
 
---CREATE UNIQUE INDEX UQ_Enrollment_Time
---  ON Enrollment (StudentGlobalId, SectionTime);
+-- students can't enroll in two courses at the same time
+ALTER TABLE Enrollment ADD CONSTRAINT CHK_EnrolledTime
+check ((select count(*)
+    from (sections s1 inner join sections s2 on
+        s1.SectionTime = s2.SectionTime and s1.SectionId <> s2.SectionId), Enrollment
+    where enrollment.SectionId = s1.SectionId or Enrollment.SectionId = s2.SectionId
+        group by enrollment.StudentGlobalId) < 2);
 
---CREATE UNIQUE INDEX UQ_Teaching_Time
---  ON Sections (GlobalId, SectionTime);
+-- teachers can't teach two classes at the same time
+CREATE UNIQUE INDEX UQ_Teaching_Time
+  ON Sections (TeacherId, SectionTime);
 
--- constraint for global id, 5 letters followed by 1 number, then 2 letters
--- two sections can't be taught in the same room at the same time
--- students can't take the same the same course twice
--- teachers can't teach multiple classes taking place at the same time
--- globalid needs to be unique for studnets and professors
+-- globalid needs to be unique for both students and professors
+alter table Students add constraint CHK_Students_Professors_Id
+    check ((select count(*) from (select * from professors p, students s where p.GlobalId = s.GlobalId)) = 0);
+alter table Professors add constraint CHK_Professors_Students_Id
+    check ((select count(*) from (select * from professors p, students s where p.GlobalId = s.GlobalId)) = 0);
 
---ALTER TABLE Students ADD CONSTRAINT CHK_EnrolledCredits
---  CHECK ((SELECT SUM(CreditHours) FROM Sections s INNER JOIN Enrollment e ON s.SectionId = e.SectionId WHERE e.StudentGlobalId = Students.GlobalId) <= 21);
+-- students cannot enroll in more than 21 credits at a time
+ALTER TABLE Students ADD CONSTRAINT CHK_EnrolledCredits
+  CHECK ((SELECT SUM(CreditHours) FROM Sections s INNER JOIN Enrollment e ON s.SectionId = e.SectionId WHERE e.StudentGlobalId = Students.GlobalId) <= 21);

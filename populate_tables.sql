@@ -16,7 +16,7 @@ VALUES
 
 
 
-INSERT INTO Courses (CourseId, Department, Title, IsWritingIntensive) VALUES
+INSERT INTO Courses (CourseId, Department, Title, IsWritingIntensive,CreditHours) VALUES
   (101, 'MAT', 'Calculus I', false),
   (102, 'MAT', 'Calculus II', false),
   (201, 'PHY', 'Physics I', false),
@@ -38,7 +38,7 @@ INSERT INTO Courses (CourseId, Department, Title, IsWritingIntensive) VALUES
   (101, 'MUS', 'Music Theory I', true),
   (152, 'MUS', 'Music History: Baroque to Classical', false);
 
-INSERT INTO Sections (SectionId, RoomId, TeacherId, CreditHours, SectionTime, CourseId)
+INSERT INTO Sections (SectionId, RoomId, StartTime,EndTime,Days,TeacherId, CreditHours, SectionTime, CourseId)
 VALUES
 (0, 101, 'P0000001', 4, '2023-09-01 10:00:00', 101),
 (1, 102, 'P0000002', 4, '2023-09-02 11:00:00', 102),

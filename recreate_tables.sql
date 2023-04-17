@@ -14,23 +14,25 @@ CREATE TABLE Courses (
   CourseId INT PRIMARY KEY check (CourseId > 99 and CourseId < 1000),
   Department VARCHAR(3) PRIMARY KEY,
   Title VARCHAR(100) NOT NULL,
-  IsWritingIntensive BOOLEAN
+  IsWritingIntensive BOOLEAN,
+  CreditHours int not null
 );
 
-CREATE TABLE Sections (
-  SectionId INT PRIMARY KEY,
+CREATE TABLE Sessions (
+  SessionId INT PRIMARY KEY,
   RoomId INT NOT NULL,
-  TeacherId varchar(8) not null,
-  CreditHours INT NOT NULL,
-  SectionTime DATE NOT NULL,
+  StartTime varchar(4) not null,
+  EndTime varchar(4) not null,
+  Days varchar(5) not null,
   CourseId INT NOT NULL,
+  TeacherId varchar(8) not null,
   CONSTRAINT FK_Section_Professor FOREIGN KEY (TeacherID) 
     REFERENCES Professors (GlobalId),
   CONSTRAINT FK_Section_Course FOREIGN KEY (CourseId)
     REFERENCES Courses (CourseId)
 );
 
-CREATE TABLE Professors (
+CREATE TABLE Instructors (
   GlobalId varchar(8) PRIMARY KEY,
   FirstName VARCHAR(50) NOT NULL,
   LastName VARCHAR(50) NOT NULL,

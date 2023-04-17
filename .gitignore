@@ -1,1 +1,4 @@
 .idea
+/Backend/bin/
+/Backend/.project
+/Backend/.classpath

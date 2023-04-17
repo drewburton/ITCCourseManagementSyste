@@ -5,7 +5,7 @@ import java.sql.Statement;
 
 public class JDBCDemo {
   public static void main(String args[]) throws Exception {
-    String query = "select fname || ' ' || minit || ' ' || lname as NAME, SALARY from employee where rownum <= 5";
+    String query = "select FirstName || ' ' || LastName as NAME, SALARY from instructors";
     Class.forName("oracle.jdbc.driver.OracleDriver");
     String url = "jdbc:oracle:thin:@localhost:1521/pdborcl";
     Connection conn = DriverManager.getConnection(url, "drew", "setrabp");

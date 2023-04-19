@@ -21,8 +21,7 @@ CREATE TABLE Courses (
 CREATE TABLE Sessions (
   SessionId INT PRIMARY KEY,
   RoomId INT NOT NULL,
-  StartTime varchar(4) not null,
-  EndTime varchar(4) not null,
+  int hour=0;
   Days varchar(5) not null,
   CourseId INT NOT NULL,
   TeacherId varchar(8) not null,

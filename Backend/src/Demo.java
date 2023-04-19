@@ -13,7 +13,7 @@ import javafx.stage.Stage;
 /**
  * The measurement units for graphics in Java are all in pixels
  */
-public class Main extends Application {
+public class Demo extends Application {
     @Override // Override the start method in the Application class
     public void start(Stage primaryStage) {
     	Connection conn;

@@ -25,52 +25,31 @@ import javafx.stage.Stage;
  * The measurement units for graphics in Java are all in pixels
  */
 public class CourseManagement extends Application {
-	private ObservableList<String> availableCourses = FXCollections.observableArrayList(
-            "Math 101", "History 201", "Science 301", "English 401", "Computer Science 501");
 
-    private ListView<String> courseListView = new ListView<>();
-    private ListView<String> registeredCoursesListView = new ListView<>();
     
     @Override // Override the start method in the Application class
     public void start(Stage primaryStage) {
-    	Connection conn;
+    	DatabaseAccess db;
 		try {
-			conn = connectToDatabase();
+			db = new DatabaseAccess();
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 			return;
 		}
 		
-	       // Set up UI components
-        Label availableCoursesLabel = new Label("Available Courses:");
-        courseListView.setItems(availableCourses);
-        courseListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-        Label registeredCoursesLabel = new Label("Registered Courses:");
-        registeredCoursesListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
-        Button registerButton = new Button("Register");
-        registerButton.setOnAction(event -> registerCourses());
-
-        // Set up UI layout
-        VBox leftBox = new VBox(10, availableCoursesLabel, courseListView);
-        VBox rightBox = new VBox(10, registeredCoursesLabel, registeredCoursesListView);
-        VBox.setVgrow(courseListView, Priority.ALWAYS);
-        VBox.setVgrow(registeredCoursesListView, Priority.ALWAYS);
-
-        HBox centerBox = new HBox(10, leftBox, rightBox);
-        centerBox.setPadding(new Insets(10));
-
-        BorderPane root = new BorderPane(centerBox, null, null, registerButton, null);
-        Scene scene = new Scene(root, 400, 300);
-
+		RegistrationScene registrationScene = new RegistrationScene(db);
+		StudentSelectScene studentSelectScene = new StudentSelectScene(db, new LoginFunction() {
+			public void login() {
+				
+			}
+		});
+		
         primaryStage.setTitle("Course Registration App");
-        primaryStage.setScene(scene);
+        primaryStage.setScene(registrationScene.getScene());
         primaryStage.show();
         
         try {
-			conn.close();
+        	db.closeConnection();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -101,10 +80,5 @@ public class CourseManagement extends Application {
         return rs.getString("testCol");	
     }
     
-    private void registerCourses() {
-        ObservableList<String> selectedCourses = courseListView.getSelectionModel().getSelectedItems();
-        registeredCoursesListView.getItems().addAll(selectedCourses);
-        courseListView.getItems().removeAll(selectedCourses);
-        courseListView.getSelectionModel().clearSelection();
-    }
+
 }

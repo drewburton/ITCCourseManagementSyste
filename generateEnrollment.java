@@ -9,6 +9,10 @@ class Enrollments {
     public int enrollment3;
     public int enrollment4;
     public int enrollment5;
+    public String id;
+	String toQuery(){
+		return "INSERT INTO ENROLLMENT (SessionId, RoomId, StartTime,EndTime,Days,TeacherId, CreditHours, SectionTime, CourseId) VALUES ('','')"
+	}
 }
 
 public class Main {
@@ -19,11 +23,11 @@ public class Main {
         String url = "jdbc:oracle:thin:@localhost:1521/pdborcl";
         dbConn = DriverManager.getConnection(url, "drew", "setrabp");
 	}
-	String query = "select * from section";
-        Statement stmt = conn.createStatement();
+	String query = "select * from Sessions";
+        Statement stmt = dbConn.createStatement();
         ResultSet rs = stmt.executeQuery(query);
         rs.next();
-        return rs.getString("testCol");	
+        String globalIds = rs.getString("SessionId");	
 	
 	public static List<Integer> pickNRandom(List<Integer> lst, int n) {
     List<Integer> copy = new ArrayList<Integer>(lst);
@@ -41,17 +45,15 @@ public class Main {
 for(int i=0;i<globalIds.length;i++){
 	String studentGlobalId=globalIds[i];
 	Enrollment enr = new Enrollemnt();
-	List<Integer> sections = pickNRandom(sectionIds, 5);
-	enr.enrollment1=sections[0];
-	enr.enrollment2=sections[1];
-	enr.enrollment3=sections[2];
-	enr.enrollment4=sections[3];
-	enr.enrollment5=sections[4];
-	
-
-	
-	
-	//executeQuery();
+	enr.id=studentGlobalId;
+	Integer[] sectionIds = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50};
+	List<Integer> sessions = pickNRandom(sectionIds, 5);
+	enr.enrollment1=sessions[0];
+	enr.enrollment2=sessions[1];
+	enr.enrollment3=sessions[2];
+	enr.enrollment4=sessions[3];
+	enr.enrollment5=sessions[4];
+	String query = enr.toQuery();
 }
 
 

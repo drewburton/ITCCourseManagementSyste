@@ -17,26 +17,26 @@ VALUES
 
 
 INSERT INTO Courses (CourseId, Department, Title, IsWritingIntensive,CreditHours) VALUES
-  (101, 'MAT', 'Calculus I', false),
-  (102, 'MAT', 'Calculus II', false),
-  (201, 'PHY', 'Physics I', false),
-  (202, 'PHY', 'Physics II', false),
-  (301, 'CHE', 'Organic Chemistry I', true),
-  (302, 'CHE', 'Organic Chemistry II', true),
-  (202, 'ENG', 'Introduction to Creative Writing', true),
-  (402, 'ENG', 'Shakespeare and His Contemporaries', false),
-  (230, 'HIS', 'American History: Revolution to Civil War', true),
-  (360, 'HIS', 'American History: Reconstruction to Present', true),
-  (161, 'BIO', 'Introductory Biology I', false),
-  (162, 'BIO', 'Introductory Biology II', false),
-  (141, 'PSY', 'Introduction to Psychology', true),
-  (460, 'PSY', 'Abnormal Psychology', true),
-  (120, 'ECO', 'Principles of Microeconomics', false),
-  (121, 'ECO', 'Principles of Macroeconomics', false),
-  (127, 'ART', 'Drawing I', true),
-  (232, 'ART', 'Painting II', true),
-  (101, 'MUS', 'Music Theory I', true),
-  (152, 'MUS', 'Music History: Baroque to Classical', false);
+  (101, 'MAT', 'Calculus I', false,3),
+  (102, 'MAT', 'Calculus II', false,3),
+  (201, 'PHY', 'Physics I', false,3),
+  (202, 'PHY', 'Physics II', false,3),
+  (301, 'CHE', 'Organic Chemistry I', true,3),
+  (302, 'CHE', 'Organic Chemistry II', true,3),
+  (202, 'ENG', 'Introduction to Creative Writing', true,3),
+  (402, 'ENG', 'Shakespeare and His Contemporaries', false,3),
+  (230, 'HIS', 'American History: Revolution to Civil War', true,3),
+  (360, 'HIS', 'American History: Reconstruction to Present', true,3),
+  (161, 'BIO', 'Introductory Biology I', false,3),
+  (162, 'BIO', 'Introductory Biology II', false,3),
+  (141, 'PSY', 'Introduction to Psychology', true,3),
+  (460, 'PSY', 'Abnormal Psychology', true,3),
+  (120, 'ECO', 'Principles of Microeconomics', false,3),
+  (121, 'ECO', 'Principles of Macroeconomics', false,3),
+  (127, 'ART', 'Drawing I', true,3),
+  (232, 'ART', 'Painting II', true,3),
+  (101, 'MUS', 'Music Theory I', true,3),
+  (152, 'MUS', 'Music History: Baroque to Classical', false,3);
 
 INSERT INTO Sessions (SessionId, RoomId, TeacherId,Days,TeacherId, CreditHours, SectionTime, CourseId)
 VALUES

@@ -59,6 +59,7 @@ for(int i=0;i<globalIds.length;i++){
 	enr.enrollment4=sessions[3];
 	enr.enrollment5=sessions[4];
 	String query = enr.toQuery();
+	stmt.executeQuery(query);
 }
 
 

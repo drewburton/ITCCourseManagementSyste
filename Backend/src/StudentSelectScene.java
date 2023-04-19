@@ -17,50 +17,46 @@ import java.util.List;
 
 @FunctionalInterface
 interface LoginFunction {
-	void login();
+	void login(String globalId);
 }
 
 public class StudentSelectScene {
 	private Scene scene;
-	private List<String> globalIds = Arrays.asList(new String[]{"Smit1EZ", "John1OZ", "Will1AZ"});
-	
-	private TextField idTextField;
-	private Label errorLabel;
 	
 	private DatabaseAccess db;
+
+	private ListView<String> idListView;
 	
-	StudentSelectScene(DatabaseAccess db, LoginFunction func) {
+	StudentSelectScene(DatabaseAccess db) {
 		this.db = db;
+	}
+	
+	public void setScene(LoginFunction func) {
+		Label idLabel = new Label("Choose a globalId");
 		
-		idTextField = new TextField();
-		idTextField.setPromptText("Enter your globalId");
-		
+		idListView = new ListView<>();
+		idListView.setItems(db.getGlobalIds());
+	    idListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+
 		Button enterButton = new Button("Enter");
-		enterButton.setOnAction(event -> func.login());
+		enterButton.setOnAction(event -> func.login(idListView.getSelectionModel().getSelectedItem()));
 		
 		Button exitButton = new Button("Exit");
 		exitButton.setOnAction(event -> Platform.exit());
 		
-		errorLabel = new Label("Incorrect globalId. Please try again.");
-		errorLabel.setVisible(false);
-
 		// Set up UI layout
-          HBox buttonBox = new HBox(10, enterButton, exitButton);
+         HBox buttonBox = new HBox(10, enterButton, exitButton);
 
-          VBox centerBox = new VBox(10, idTextField, buttonBox, errorLabel);
-          centerBox.setPadding(new Insets(10));
+         VBox centerBox = new VBox(10, idLabel, idListView, buttonBox);
+         centerBox.setPadding(new Insets(10));
           
-          HBox.setHgrow(enterButton, Priority.ALWAYS);
-          HBox.setHgrow(exitButton, Priority.ALWAYS);
+         HBox.setHgrow(enterButton, Priority.ALWAYS);
+         HBox.setHgrow(exitButton, Priority.ALWAYS);
 
-          scene = new Scene(centerBox, 400, 300);
+         scene = new Scene(centerBox, 400, 300);
 	}
 	
 	public Scene getScene() {
 		return scene;
-	}
-	
-	public boolean verifyLogin() {
-		return globalIds.contains(idTextField.getText()); 
 	}
 }

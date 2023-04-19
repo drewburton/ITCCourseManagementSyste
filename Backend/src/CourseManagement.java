@@ -36,16 +36,26 @@ public class CourseManagement extends Application {
 			e1.printStackTrace();
 			return;
 		}
-		
+	
 		RegistrationScene registrationScene = new RegistrationScene(db);
-		StudentSelectScene studentSelectScene = new StudentSelectScene(db, new LoginFunction() {
-			public void login() {
-				
+		StudentSelectScene studentSelectScene = new StudentSelectScene(db);
+		
+		registrationScene.setScene(new ReturnFunction() {
+			public void returnToLogin() {
+				primaryStage.setScene(studentSelectScene.getScene());
+			}
+		});
+		studentSelectScene.setScene(new LoginFunction() {
+			public void login(String globalId) {
+				if (globalId != null) {
+					registrationScene.setCurrentGlobalId(globalId);
+					primaryStage.setScene(registrationScene.getScene());
+				}
 			}
 		});
 		
         primaryStage.setTitle("Course Registration App");
-        primaryStage.setScene(registrationScene.getScene());
+        primaryStage.setScene(studentSelectScene.getScene());
         primaryStage.show();
         
         try {
@@ -62,23 +72,4 @@ public class CourseManagement extends Application {
     public static void main(String[] args) {
         launch(args);
     }
-    
-    public static Connection connectToDatabase() throws Exception {
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        String url = "jdbc:oracle:thin:@localhost:1521/pdborcl";
-        Connection conn = DriverManager.getConnection(url, "drew", "setrabp");
-        return conn;
-        
-
-    }
-    
-    public static String getTestCol(Connection conn) throws Exception {
-        String query = "select testCol from test";
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(query);
-        rs.next();
-        return rs.getString("testCol");	
-    }
-    
-
 }

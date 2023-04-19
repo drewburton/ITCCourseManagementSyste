@@ -1,4 +1,6 @@
-
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 
 class Enrollments {
@@ -7,22 +9,22 @@ class Enrollments {
     public int enrollment3;
     public int enrollment4;
     public int enrollment5;
-    
-    public Enrollments(String globalId,int enrollment1, int enrollment2, int enrollment3, int enrollment4, int enrollment5) {
-        this.globalId=globalId;
-	this.enrollment1 = "";
-        this.enrollment2 = "";
-        this.enrollment3 = "";
-        this.enrollment4 = "";
-        this.enrollment5 = "";
-    }
-    public boolean requiresMore(){
-	return this.enrollment5.equals("");
-}
 }
 
 public class Main {
-
+		private Connection dbConn;
+	
+	DatabaseAccess() throws Exception {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        String url = "jdbc:oracle:thin:@localhost:1521/pdborcl";
+        dbConn = DriverManager.getConnection(url, "drew", "setrabp");
+	}
+	String query = "select * from section";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(query);
+        rs.next();
+        return rs.getString("testCol");	
+	
 	public static List<Integer> pickNRandom(List<Integer> lst, int n) {
     List<Integer> copy = new ArrayList<Integer>(lst);
     Collections.shuffle(copy);
@@ -37,7 +39,7 @@ public class Main {
 	    }
 	    
 for(int i=0;i<globalIds.length;i++){
-	String studentGlobalId=globalIds;
+	String studentGlobalId=globalIds[i];
 	Enrollment enr = new Enrollemnt();
 	List<Integer> sections = pickNRandom(sectionIds, 5);
 	enr.enrollment1=sections[0];

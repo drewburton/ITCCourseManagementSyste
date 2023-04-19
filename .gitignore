@@ -2,3 +2,6 @@
 /Backend/bin/
 /Backend/.project
 /Backend/.classpath
+/bin/
+/.metadata/
+.DS_Store

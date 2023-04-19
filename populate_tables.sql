@@ -38,7 +38,7 @@ INSERT INTO Courses (CourseId, Department, Title, IsWritingIntensive,CreditHours
   (101, 'MUS', 'Music Theory I', true,3),
   (152, 'MUS', 'Music History: Baroque to Classical', false,3);
 
-INSERT INTO Sessions (SessionId, RoomId, TeacherId, SectionTime,Days, CourseId)
+INSERT INTO Sessions (SessionId, RoomId, TeacherId, hour,Days, CourseId)
 VALUES
 (0, 101, 'P0000001', 1, 'M', 101),
 (1, 102, 'P0000002', 2, 'T', 102),

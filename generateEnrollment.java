@@ -11,7 +11,12 @@ class Enrollments {
     public int enrollment5;
     public String id;
 	String toQuery(){
-		return "INSERT INTO ENROLLMENT (SessionId, RoomId, StartTime,EndTime,Days,TeacherId, CreditHours, SectionTime, CourseId) VALUES ('','')"
+		return "INSERT INTO ENROLLMENT (StudentGlobalId, SessionId) VALUES 
+			('" + this.id + "','" + enrollment1 + "'),"
+			('" + this.id + "','" + enrollment2 + "'),"
+			('" + this.id + "','" + enrollment3 + "'),"
+			('" + this.id + "','" + enrollment4 + "'),"
+			('" + this.id + "','" + enrollment5 + "')"
 	}
 }
 

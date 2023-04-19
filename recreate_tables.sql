@@ -1,7 +1,7 @@
 drop table Students cascade constraints;
 drop table Courses cascade constraints;
-drop table Sections cascade constraints;
-drop table Professors cascade constraints;
+drop table Sessions cascade constraints;
+drop table Instructors cascade constraints;
 drop table Enrollment cascade constraints;
 
 CREATE TABLE Students (
@@ -27,7 +27,7 @@ CREATE TABLE Sessions (
   CourseId INT NOT NULL,
   TeacherId varchar(8) not null,
   CONSTRAINT FK_Section_Professor FOREIGN KEY (TeacherID) 
-    REFERENCES Professors (GlobalId),
+    REFERENCES Instructors (GlobalId),
   CONSTRAINT FK_Section_Course FOREIGN KEY (CourseId)
     REFERENCES Courses (CourseId)
 );
@@ -41,36 +41,38 @@ CREATE TABLE Instructors (
 
 CREATE TABLE Enrollment (
   StudentGlobalId varchar(8) NOT NULL,
-  SectionId INT NOT NULL,
-  CONSTRAINT PK_Enrollment PRIMARY KEY (StudentGlobalId, SectionId),
+  SessionId INT NOT NULL,
+  CONSTRAINT PK_Enrollment PRIMARY KEY (StudentGlobalId, SessionId),
   CONSTRAINT FK_Enrollment_Student FOREIGN KEY (StudentGlobalId)
     REFERENCES Students (GlobalId),
-  CONSTRAINT FK_Enrollment_Section FOREIGN KEY (SectionId)
-    REFERENCES Sections (SectionId)
+  CONSTRAINT FK_Enrollment_Section FOREIGN KEY (SessionId)
+    REFERENCES Sessions (SessionId)
 );
 
 -- can't take a class in the same room at the same time
-CREATE UNIQUE INDEX UQ_Sections_Room_Time
-  ON Sections (RoomId, Sectiontime);
+alter table Sessions add constraint CHK_Sessions_Room_Time
+    check (not exists(select * from sessions s1, sessions s2 where s1.RoomId = s2.RoomId and s1.StartTime = s2.StartTime));
 
 -- students can't enroll in two courses at the same time
 ALTER TABLE Enrollment ADD CONSTRAINT CHK_EnrolledTime
 check ((select count(*)
-    from (sections s1 inner join sections s2 on
-        s1.SectionTime = s2.SectionTime and s1.SectionId <> s2.SectionId), Enrollment
-    where enrollment.SectionId = s1.SectionId or Enrollment.SectionId = s2.SectionId
+    from (sessions s1 inner join sessions s2 on
+        s1.StartTime = s2.StartTime and s1.SessionId <> s2.SessionId), Enrollment
+    where enrollment.SessionId = s1.SessionId or Enrollment.SessionId = s2.SessionId
         group by enrollment.StudentGlobalId) < 2);
 
 -- teachers can't teach two classes at the same time
-CREATE UNIQUE INDEX UQ_Teaching_Time
-  ON Sections (TeacherId, SectionTime);
+alter table sessions add constraint CHK_Teaching_Time
+    check (not exists(select * from Sessions s1, sessions s2 where s1.TeacherId = s2.TeacherId and s1.StartTime = s2.StartTime));
 
 -- globalid needs to be unique for both students and professors
 alter table Students add constraint CHK_Students_Professors_Id
-    check ((select count(*) from (select * from professors p, students s where p.GlobalId = s.GlobalId)) = 0);
-alter table Professors add constraint CHK_Professors_Students_Id
-    check ((select count(*) from (select * from professors p, students s where p.GlobalId = s.GlobalId)) = 0);
+    check ((select count(*) from (select * from Instructors p, students s where p.GlobalId = s.GlobalId)) = 0);
+alter table Instructors add constraint CHK_Professors_Students_Id
+    check ((select count(*) from (select * from Instructors p, students s where p.GlobalId = s.GlobalId)) = 0);
 
 -- students cannot enroll in more than 21 credits at a time
 ALTER TABLE Students ADD CONSTRAINT CHK_EnrolledCredits
-  CHECK ((SELECT SUM(CreditHours) FROM Sections s INNER JOIN Enrollment e ON s.SectionId = e.SectionId WHERE e.StudentGlobalId = Students.GlobalId) <= 21);
+  CHECK ((SELECT SUM(CreditHours)
+          FROM Courses, Sessions s INNER JOIN Enrollment e ON s.SessionId = e.SessionId
+            WHERE e.StudentGlobalId = Students.GlobalId and s.CourseId = Courses.CourseId) <= 21);

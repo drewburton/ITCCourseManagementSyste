@@ -29,11 +29,11 @@ CREATE TABLE Instructors (
 CREATE TABLE Sessions (
   SessionId INT PRIMARY KEY,
   RoomId INT NOT NULL,
+  InstructorId varchar(8) not null,
   hour int,
   Days varchar(5) not null,
   CourseId INT,
   Department varchar(3),
-  InstructorId varchar(8) not null,
   CONSTRAINT FK_Section_Instructor FOREIGN KEY (InstructorID) 
     REFERENCES Instructors (GlobalId),
   CONSTRAINT FK_Section_Course FOREIGN KEY (department, courseid)

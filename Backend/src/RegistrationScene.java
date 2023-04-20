@@ -28,6 +28,9 @@ public class RegistrationScene {
 
     private ListView<String> courseListView = new ListView<>();
     private ListView<String> registeredCoursesListView = new ListView<>();	
+    private TextField searchTextField;
+    private ComboBox<String> deptComboBox;
+    private CheckBox WICheckBox;
     
     private String globalId;
   
@@ -37,15 +40,15 @@ public class RegistrationScene {
 	
 	public void setScene(ReturnFunction func) {
 		Label searchLabel = new Label("Search Courses:");
-		TextField searchTextField = new TextField();
+		searchTextField = new TextField();
 		Button searchButton = new Button("Search");
 		searchButton.setOnAction(event -> search());
 		
 		Label deptLabel = new Label("Select Department:");
-		ComboBox<String> deptComboBox = new ComboBox<>(db.getDepts());
+		deptComboBox = new ComboBox<>(db.getDepts());
 		
 		Label WILabel = new Label("Writing Intensive:");
-		CheckBox WICheckBox = new CheckBox();
+		WICheckBox = new CheckBox();
 		
 	     Label availableCoursesLabel = new Label("Available Courses:");
 	     courseListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
@@ -97,28 +100,29 @@ public class RegistrationScene {
 	}
 
 	public void setCurrentGlobalId(String globalId) {
+		// todo: update registered courses for that globalId
 		this.globalId = globalId;
 	}
 	
     private void registerCourses() {
+    	// todo: access database and add enrollment
         ObservableList<String> selectedCourses = courseListView.getSelectionModel().getSelectedItems();
         registeredCoursesListView.getItems().addAll(selectedCourses);
-        courseListView.getItems().removeAll(selectedCourses);
         courseListView.getSelectionModel().clearSelection();
     }
     
     private void unregisterCourses() {
+    	// todo: access database and remove enrollment
     	ObservableList<String> selectedCourses = registeredCoursesListView.getSelectionModel().getSelectedItems();
-        courseListView.getItems().addAll(selectedCourses);
         registeredCoursesListView.getItems().removeAll(selectedCourses);
         registeredCoursesListView.getSelectionModel().clearSelection();
     }
     
     private void search() {
-    	// search textfield
-    	// wi button
-    	// dept drop down
-	     courseListView.setItems(db.getCourses());
+    	String textFieldContents = searchTextField.getText();
+    	String comboBoxContents = deptComboBox.getValue();
+    	boolean isWI = WICheckBox.isSelected();
+	    courseListView.setItems(db.getCourses(textFieldContents, comboBoxContents, isWI));
     }
     
     private void showCourseInfo(String course) {

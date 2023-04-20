@@ -1,3 +1,5 @@
+import java.util.List;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -34,14 +36,10 @@ public class RegistrationScene {
 	}
 	
 	public void setScene(ReturnFunction func) {
-		// search textField
-		// department drop down
-		// writing intensive checkbox
-		// course info textField?
-		
 		Label searchLabel = new Label("Search Courses:");
 		TextField searchTextField = new TextField();
 		Button searchButton = new Button("Search");
+		searchButton.setOnAction(event -> search());
 		
 		Label deptLabel = new Label("Select Department:");
 		ComboBox<String> deptComboBox = new ComboBox<>(db.getDepts());
@@ -50,11 +48,10 @@ public class RegistrationScene {
 		CheckBox WICheckBox = new CheckBox();
 		
 	     Label availableCoursesLabel = new Label("Available Courses:");
-	     courseListView.setItems(db.getCourses());
-	     courseListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-
+	     courseListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+	     courseListView.getSelectionModel().selectedItemProperty().addListener((ob, old, nu) ->	showCourseInfo(nu));     
 	     Label registeredCoursesLabel = new Label("Registered Courses:");
-	     registeredCoursesListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+	     registeredCoursesListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 
 	     Label courseInfoLabel = new Label("Course Info:");
 	     TextArea courseInfoArea = new TextArea();
@@ -115,5 +112,16 @@ public class RegistrationScene {
         courseListView.getItems().addAll(selectedCourses);
         registeredCoursesListView.getItems().removeAll(selectedCourses);
         registeredCoursesListView.getSelectionModel().clearSelection();
+    }
+    
+    private void search() {
+    	// search textfield
+    	// wi button
+    	// dept drop down
+	     courseListView.setItems(db.getCourses());
+    }
+    
+    private void showCourseInfo(String course) {
+    	List<Session> sessions = db.getSessionList(course);
     }
 }

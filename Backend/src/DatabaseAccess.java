@@ -35,4 +35,9 @@ public class DatabaseAccess {
 		ObservableList<String> depts = FXCollections.observableArrayList("", "CPS", "MAT", "BIO");
 		return depts;
 	}
+	
+	public List<Session> getSessionList(String course) {
+//		"select Department || ' ' || CourseId fullId from courses where fullId = course;"
+		return null;
+	}
 }

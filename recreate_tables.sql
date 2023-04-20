@@ -11,24 +11,12 @@ CREATE TABLE Students (
 );
 
 CREATE TABLE Courses (
-  CourseId INT PRIMARY KEY check (CourseId > 99 and CourseId < 1000),
-  Department VARCHAR(3) PRIMARY KEY,
+  CourseId INT check (CourseId > 99 and CourseId < 1000),
+  Department VARCHAR(3),
   Title VARCHAR(100) NOT NULL,
-  IsWritingIntensive BOOLEAN,
-  CreditHours int not null
-);
-
-CREATE TABLE Sessions (
-  SessionId INT PRIMARY KEY,
-  RoomId INT NOT NULL,
-  int hour=0;
-  Days varchar(5) not null,
-  CourseId INT NOT NULL,
-  TeacherId varchar(8) not null,
-  CONSTRAINT FK_Section_Professor FOREIGN KEY (TeacherID) 
-    REFERENCES Instructors (GlobalId),
-  CONSTRAINT FK_Section_Course FOREIGN KEY (CourseId)
-    REFERENCES Courses (CourseId)
+  IsWritingIntensive int,
+  CreditHours int not null,
+  constraint PK_Courses primary key (department, courseid)
 );
 
 CREATE TABLE Instructors (
@@ -36,6 +24,20 @@ CREATE TABLE Instructors (
   FirstName VARCHAR(50) NOT NULL,
   LastName VARCHAR(50) NOT NULL,
   Salary DECIMAL(10,2) NOT NULL CHECK (Salary >= 0)
+);
+
+CREATE TABLE Sessions (
+  SessionId INT PRIMARY KEY,
+  RoomId INT NOT NULL,
+  hour int,
+  Days varchar(5) not null,
+  CourseId INT,
+  Department varchar(3),
+  InstructorId varchar(8) not null,
+  CONSTRAINT FK_Section_Instructor FOREIGN KEY (InstructorID) 
+    REFERENCES Instructors (GlobalId),
+  CONSTRAINT FK_Section_Course FOREIGN KEY (department, courseid)
+    REFERENCES Courses (department, CourseId)
 );
 
 CREATE TABLE Enrollment (
@@ -47,7 +49,7 @@ CREATE TABLE Enrollment (
   CONSTRAINT FK_Enrollment_Section FOREIGN KEY (SessionId)
     REFERENCES Sessions (SessionId)
 );
-
+/*
 -- can't take a class in the same room at the same time
 alter table Sessions add constraint CHK_Sessions_Room_Time
     check (not exists(select * from sessions s1, sessions s2 where s1.RoomId = s2.RoomId and s1.StartTime = s2.StartTime));
@@ -75,3 +77,4 @@ ALTER TABLE Students ADD CONSTRAINT CHK_EnrolledCredits
   CHECK ((SELECT SUM(CreditHours)
           FROM Courses, Sessions s INNER JOIN Enrollment e ON s.SessionId = e.SessionId
             WHERE e.StudentGlobalId = Students.GlobalId and s.CourseId = Courses.CourseId) <= 21);
+*/

@@ -1,9 +1,4 @@
-import java.util.List;
-
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -31,6 +26,8 @@ public class RegistrationScene {
     private TextField searchTextField;
     private ComboBox<String> deptComboBox;
     private CheckBox WICheckBox;
+    private TextArea courseInfoArea;
+    private ListView<String> sessionListView = new ListView<>();
     
     private String globalId;
   
@@ -52,12 +49,17 @@ public class RegistrationScene {
 		
 	     Label availableCoursesLabel = new Label("Available Courses:");
 	     courseListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-	     courseListView.getSelectionModel().selectedItemProperty().addListener((ob, old, nu) ->	showCourseInfo(nu));     
+	     courseListView.getSelectionModel().selectedItemProperty().addListener((ob, old, nu) ->	showInfo(nu, false));     
+	     
 	     Label registeredCoursesLabel = new Label("Registered Courses:");
 	     registeredCoursesListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-
+	     registeredCoursesListView.getSelectionModel().selectedItemProperty().addListener((ob, old, nu) ->	showInfo(nu, true));     
+	     
 	     Label courseInfoLabel = new Label("Course Info:");
-	     TextArea courseInfoArea = new TextArea();
+	     courseInfoArea = new TextArea();
+	     
+	     Label sessionInfoLabel = new Label("Session Info:");
+	     sessionListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 	     
 	     Button registerButton = new Button("Register");
 	     registerButton.setOnAction(event -> registerCourses());
@@ -78,10 +80,11 @@ public class RegistrationScene {
 	     
 	     VBox coursesBox = new VBox(10, availableCoursesLabel, courseListView);
 	     VBox registeredBox = new VBox(10, registeredCoursesLabel, registeredCoursesListView);
-	     VBox courseInfoBox = new VBox(10, courseInfoLabel, courseInfoArea);
+	     VBox courseInfoBox = new VBox(10, courseInfoLabel, courseInfoArea, sessionInfoLabel, sessionListView);
 	     VBox.setVgrow(courseListView, Priority.ALWAYS);
 	     VBox.setVgrow(registeredCoursesListView, Priority.ALWAYS);
 	     VBox.setVgrow(courseInfoArea, Priority.ALWAYS);
+	     
 	     HBox buttonsBox = new HBox(10, registerButton, unregisterButton);
 	     
 	     VBox searchGroup = new VBox(searchBox, deptBox, WIBox);
@@ -100,21 +103,28 @@ public class RegistrationScene {
 	}
 
 	public void setCurrentGlobalId(String globalId) {
-		// todo: update registered courses for that globalId
+		registeredCoursesListView.getItems().clear();
+		registeredCoursesListView.getItems().addAll(db.getRegisteredCourses(globalId));
 		this.globalId = globalId;
 	}
 	
     private void registerCourses() {
-    	// todo: access database and add enrollment
-        ObservableList<String> selectedCourses = courseListView.getSelectionModel().getSelectedItems();
-        registeredCoursesListView.getItems().addAll(selectedCourses);
+    	String selectedSession = sessionListView.getSelectionModel().getSelectedItem();
+        String selectedCourse = courseListView.getSelectionModel().getSelectedItem();
+        
+        if (db.registerCourse(globalId, selectedCourse, Session.parseSession(selectedSession))) {
+        	registeredCoursesListView.getItems().add(selectedCourse);
+        } 
+        
         courseListView.getSelectionModel().clearSelection();
     }
     
     private void unregisterCourses() {
-    	// todo: access database and remove enrollment
-    	ObservableList<String> selectedCourses = registeredCoursesListView.getSelectionModel().getSelectedItems();
-        registeredCoursesListView.getItems().removeAll(selectedCourses);
+    	String selectedCourse = registeredCoursesListView.getSelectionModel().getSelectedItem();
+    	
+    	db.unregisterCourse(globalId, selectedCourse);
+    	
+        registeredCoursesListView.getItems().remove(selectedCourse);
         registeredCoursesListView.getSelectionModel().clearSelection();
     }
     
@@ -125,7 +135,24 @@ public class RegistrationScene {
 	    courseListView.setItems(db.getCourses(textFieldContents, comboBoxContents, isWI));
     }
     
+    private void showInfo(String course, boolean registered) {
+    	showCourseInfo(course);
+    	showSessionInfo(course, registered);
+    }
+    
     private void showCourseInfo(String course) {
-    	List<Session> sessions = db.getSessionList(course);
+    	courseInfoArea.clear();
+    	if (course != null && !course.equals("")) {
+    		Course c = db.getCourseInfo(course);
+    		courseInfoArea.appendText("Title: " + c.getTitle() + "\n");
+    		if (c.isWi()) {
+    			courseInfoArea.appendText("Writing Intensive Course\n");
+    		}
+    		courseInfoArea.appendText("Credit Hours: " + c.getCreditHours() + "\n");
+    	}
+    }
+    
+    private void showSessionInfo(String course, boolean registered) {
+    	// TODO: implement
     }
 }

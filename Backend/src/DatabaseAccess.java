@@ -3,8 +3,6 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Arrays;
-import java.util.List;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -81,13 +79,105 @@ public class DatabaseAccess {
 	}
 	
 	public ObservableList<String> getDepts() {
-		ObservableList<String> depts = FXCollections.observableArrayList("", "CPS", "MAT", "BIO");
-		return depts;
+		reopenConnectionIfClosed();
+		
+		String query = "select distinct department from courses";
+
+		try {
+			Statement stmt = dbConn.createStatement();
+		    ResultSet rs = stmt.executeQuery(query);
+		    ObservableList<String> depts = FXCollections.observableArrayList();
+		    while (rs.next()) {
+		    	depts.add(rs.getString("department"));
+		    }
+		    if (depts.size() > 0) {
+		    	depts.add(0, "");
+		    }
+		    return depts;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("depts retrieval SQL query failed");
+			System.out.println(query);
+			return FXCollections.observableArrayList();
+		}
 	}
 	
-	public List<Session> getSessionList(String course) {
-//		"select Department || ' ' || CourseId fullId from courses where fullId = course;"
-		return null;
+	public Course getCourseInfo(String course) {
+		reopenConnectionIfClosed();
+		
+		String query = "select title, isWritingIntensive, creditHours from (select department || ' ' || courseId fullId, title, isWritingIntensive, CreditHours from courses) where fullId = \'" + course + "\'";
+		
+		try {
+			Statement stmt = dbConn.createStatement();
+		    ResultSet rs = stmt.executeQuery(query);
+		    rs.next();
+		    String title = rs.getString("title");
+		    boolean isWI = rs.getInt("isWritingIntensive") != 0;
+		    int creditHours = rs.getInt("creditHours");
+		    	
+		    return new Course(title, isWI, creditHours);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("session info retrieval SQL query failed");
+			System.out.println(query);
+			return null;
+		}
+
+	}
+	
+	public ObservableList<Session> getSessionList(String course) {
+		// TODO: finish
+		reopenConnectionIfClosed();
+		
+		String query = "";
+		
+		try {
+			Statement stmt = dbConn.createStatement();
+		    ResultSet rs = stmt.executeQuery(query);
+		    ObservableList<Session> sessions = FXCollections.observableArrayList();
+		    while (rs.next()) {
+		    	Session s = new Session(0, 0, 0, "", "", "");
+		    	sessions.add(s);
+		    }
+		    return sessions;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("session info retrieval SQL query failed");
+			System.out.println(query);
+			return FXCollections.observableArrayList();
+		}
+	}
+	
+	public boolean registerCourse(String globalId, String course, Session session) {
+		// TODO: implement
+		return false;
+	}
+
+	public void unregisterCourse(String globalId, String course) {
+		// TODO: implement
+	}
+	
+	public ObservableList<String> getRegisteredCourses(String globalId) {
+		// TODO: Test once sessions are inserted
+		reopenConnectionIfClosed();
+		
+		String query = "select c.department || ' ' || c.courseId fullId from courses c, sessions s, enrollment e where "
+				+ "e.StudentGlobalId = \'" + globalId + "\' and e.SessionId = s.SessionId and s.CourseId = c.CourseId";
+		
+		try {
+			Statement stmt = dbConn.createStatement();
+		    ResultSet rs = stmt.executeQuery(query);
+		    ObservableList<String> courses = FXCollections.observableArrayList();
+		    while (rs.next()) {
+		    	courses.add(rs.getString("fullId"));
+		    }
+		    return courses;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("registered courses retrieval SQL query failed");
+			System.out.println(query);
+			return FXCollections.observableArrayList();
+		}
 	}
 	
 	private void reopenConnectionIfClosed() {

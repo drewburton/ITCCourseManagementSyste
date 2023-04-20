@@ -62,6 +62,8 @@ check ((select count(*)
     where enrollment.SessionId = s1.SessionId or Enrollment.SessionId = s2.SessionId
         group by enrollment.StudentGlobalId) < 2);
 
+-- students can't enroll in the same course twice
+
 -- teachers can't teach two classes at the same time
 alter table sessions add constraint CHK_Teaching_Time
     check (not exists(select * from Sessions s1, sessions s2 where s1.TeacherId = s2.TeacherId and s1.StartTime = s2.StartTime));

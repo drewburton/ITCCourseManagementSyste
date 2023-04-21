@@ -53,11 +53,21 @@ public class RegistrationScene {
 		
 	     Label availableCoursesLabel = new Label("Available Courses:");
 	     courseListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-	     courseListView.getSelectionModel().selectedItemProperty().addListener((ob, old, nu) ->	showInfo(nu, false));     
+	     courseListView.getSelectionModel().selectedItemProperty().addListener((ob, old, nu) ->	{
+	    	 if (nu != null) {
+	    		 showInfo(nu, false);
+	    		 registeredCoursesListView.getSelectionModel().clearSelection();
+	    	 }
+	     });    
 	     
 	     Label registeredCoursesLabel = new Label("Registered Courses:");
 	     registeredCoursesListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-	     registeredCoursesListView.getSelectionModel().selectedItemProperty().addListener((ob, old, nu) ->	showInfo(nu, true));     
+	     registeredCoursesListView.getSelectionModel().selectedItemProperty().addListener((ob, old, nu) ->	{
+	    	 if (nu != null) {
+	    		 showInfo(nu, true);
+	    		 courseListView.getSelectionModel().clearSelection();
+	    	 }
+	     });     
 	     
 	     Label courseInfoLabel = new Label("Course Info:");
 	     courseInfoArea = new TextArea();
@@ -72,7 +82,14 @@ public class RegistrationScene {
 	     unregisterButton.setOnAction(event -> unregisterCourses());
 
 	     Button returnButton = new Button("Return");
-	     returnButton.setOnAction(event -> func.returnToLogin());
+	     returnButton.setOnAction(event -> {
+	    	 courseListView.getSelectionModel().clearSelection();
+	    	 registeredCoursesListView.getSelectionModel().clearSelection();
+	    	 courseListView.getItems().clear();
+	    	 courseInfoArea.clear();
+	    	 sessionListView.getItems().clear();
+	    	 func.returnToLogin();
+	     });
 	     
 	     // Set up UI layout
 	     HBox searchBox = new HBox(10, searchLabel, searchTextField, searchButton);
@@ -126,9 +143,9 @@ public class RegistrationScene {
     private void unregisterCourses() {
     	String selectedCourse = registeredCoursesListView.getSelectionModel().getSelectedItem();
     	
-    	db.unregisterCourse(globalId, selectedCourse);
-    	
-        registeredCoursesListView.getItems().remove(selectedCourse);
+    	if (db.unregisterCourse(globalId, selectedCourse)) {
+    		registeredCoursesListView.getItems().remove(selectedCourse);
+    	}
         registeredCoursesListView.getSelectionModel().clearSelection();
     }
     
@@ -157,8 +174,8 @@ public class RegistrationScene {
     }
     
     private void showSessionInfo(String course, boolean registered) {
-    	ObservableList<Session> sessions = db.getSessionList(course, globalId, registered);
     	sessionListView.getItems().clear();
+    	ObservableList<Session> sessions = db.getSessionList(course, globalId, registered);
     	List<String> sessionStrings = sessions.stream().map(Session::toString).toList();
     	sessionListView.setItems(FXCollections.observableArrayList(sessionStrings));
     }

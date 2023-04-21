@@ -1,5 +1,6 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -162,27 +163,56 @@ public class DatabaseAccess {
 	}
 	
 	public boolean registerCourse(String globalId, Session session) {
-		// TODO: implement
-		// check not enrolled in course
-		// check time of session
-		// check number of credits
 		if (checkCourseEnrollment(globalId, session) && checkSessionTime(globalId, session) && checkTotalCredits(globalId, session)) {
+			String sql = "insert into enrollment values(\'" + globalId + "\', " + session.getSessionId() + ")";
+			try {
+				PreparedStatement stmt = dbConn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+				int affectedKeys = stmt.executeUpdate();
+				return affectedKeys > 0;
+			} catch (SQLException e) {
+				e.printStackTrace();
+				System.out.println("failed to add course to database");
+				return false;
+			}
 			
 		}
+		System.out.println("not allowed to register for this course");
 		return false;
 	}
 
-	public void unregisterCourse(String globalId, String course) {
+	public boolean unregisterCourse(String globalId, String course) {
 		reopenConnectionIfClosed();
-		// TODO: implement
+		String query = "select s.sessionId from sessions s, enrollment e where "
+				+ "s.sessionId = e.sessionId and e.studentglobalId = \'" + globalId + "\' and s.department || ' ' || s.courseid = \'" + course + "\'";
+		int sessionId;
+		try {
+			Statement stmt = dbConn.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			rs.next();
+			sessionId = rs.getInt("sessionId");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("failed to retrieve course to unregister");
+			return false;
+		}
+		
+		String sql = "delete from enrollment where studentGlobalId = \'" + globalId + "\' and sessionId = " + sessionId;
+		try {
+			PreparedStatement stmt = dbConn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+			int affectedKeys = stmt.executeUpdate();
+			return affectedKeys > 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("failed to remove course from database");
+			return false;
+		}
 	}
 	
 	public ObservableList<String> getRegisteredCourses(String globalId) {
-		// TODO: Test once sessions are inserted
 		reopenConnectionIfClosed();
 		
 		String query = "select c.department || ' ' || c.courseId fullId from courses c, sessions s, enrollment e where "
-				+ "e.StudentGlobalId = \'" + globalId + "\' and e.SessionId = s.SessionId and s.CourseId = c.CourseId";
+				+ "e.StudentGlobalId = \'" + globalId + "\' and e.SessionId = s.SessionId and s.CourseId = c.CourseId and s.department = c.department";
 		
 		try {
 			Statement stmt = dbConn.createStatement();
@@ -202,6 +232,23 @@ public class DatabaseAccess {
 	
 	private boolean checkCourseEnrollment(String globalId, Session session) {
 		reopenConnectionIfClosed();
+		
+		String studentEnrolledSessionsQuery = "(select s.courseId, s.department from sessions s, enrollment e where "
+				+ "s.sessionid = e.sessionid and e.studentglobalid = \'" + globalId + "\')"; 
+		String courseEnrollmentQuery = "select sessionid, courseId, department from sessions where "
+				+ "sessionid = " + session.getSessionId() + " and (courseId, department) not in " + studentEnrolledSessionsQuery;
+		
+		try {
+			Statement stmt = dbConn.createStatement();
+			ResultSet rs = stmt.executeQuery(courseEnrollmentQuery);
+			
+			return rs.next(); // true if student isn't enrolled in a section of the same course type
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("course enrollment check SQL query failed");
+			System.out.println(courseEnrollmentQuery);
+			return false;
+		}
 	}
 	
 	private boolean checkSessionTime(String globalId, Session session) {
@@ -209,7 +256,7 @@ public class DatabaseAccess {
 		
 		String query = "select count(*) overlappingSections from sessions s, enrollment e where "
 				+ "s.sessionid = e.sessionid and e.studentglobalid = \'" + globalId + "\'"
-				+ " and s.hour in (select s2.hour from sessions s2 where s2.sessionId = \'" + session.getSessionId() + "\'";
+				+ " and s.hour in (select s2.hour from sessions s2 where s2.sessionId = " + session.getSessionId() + ")";
 		try {
 			Statement stmt = dbConn.createStatement();
 		    ResultSet rs = stmt.executeQuery(query);
@@ -225,16 +272,20 @@ public class DatabaseAccess {
 	
 	private boolean checkTotalCredits(String globalId, Session session) {
 		reopenConnectionIfClosed();
-		String courseCreditHoursQuery = "select creditHours from sessions s, courses c where s.sessionid = \'" + session.getSessionId() + "\' and s.courseId = c.courseId";
+		String courseCreditHoursQuery = "select creditHours from sessions s, courses c where s.sessionid = " + session.getSessionId() + " and s.courseId = c.courseId and s.department = c.department";
 		String totalCreditHoursQuery = "select sum(creditHours) totalCreditHours from sessions s, enrollment e, courses c where "
-				+ "e.studentGlobalId = \'" + globalId + "\' and e.sessionid = s.sessionid and s.courseid = c.courseid";
+				+ "e.studentGlobalId = \'" + globalId + "\' and e.sessionid = s.sessionid and s.courseid = c.courseid and s.department = c.department";
 		try {
-			Statement stmt = dbConn.createStatement();
-		    ResultSet tchrs = stmt.executeQuery(totalCreditHoursQuery);
-		    ResultSet cchrs = stmt.executeQuery(courseCreditHoursQuery);
-		    tchrs.next();
+			Statement stmt1 = dbConn.createStatement();
+		    ResultSet cchrs = stmt1.executeQuery(courseCreditHoursQuery);
 		    cchrs.next();
-		    return tchrs.getInt("totalCreditHours") <= 21 - cchrs.getInt("creditHours");
+		    int courseCreditHours = cchrs.getInt("creditHours");
+		    
+		    Statement stmt2 = dbConn.createStatement();
+		    ResultSet tchrs = stmt2.executeQuery(totalCreditHoursQuery);
+		    if (!tchrs.next()) 
+		    	return true;
+		    return tchrs.getInt("totalCreditHours") <= 21 - courseCreditHours;
 		} catch (SQLException e) {
 			e.printStackTrace();
 			System.out.println("total credits retrieval SQL query failed");

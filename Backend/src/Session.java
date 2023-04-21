@@ -1,3 +1,5 @@
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Session {
 	private int sessionId;
@@ -42,12 +44,19 @@ public class Session {
 	
 	@Override
 	public String toString() {
-		// TODO: implement
-		return "";
+		return "SessionId: " + sessionId + "\nRoom: " + roomId + "\nHour: " + hour + "\nDays: " + days + "\nTeacher: " + teacherFname + " " + teacherLname;
 	}
 	
 	public static Session parseSession(String s) {
-		// TODO: implement
-		return null;
+		 Matcher m = Pattern.compile("SessionId: (\\d+)\nRoom: (\\d+)\nHour: (\\d+)\nDays: (\\w+)\nTeacher: ([\\w\\ ]+)").matcher(s);
+		 if (m.find()) {
+			 int sessionId = Integer.parseInt(m.group(1));
+			 int roomId = Integer.parseInt(m.group(2));
+			 int hour = Integer.parseInt(m.group(3));
+			 String days = m.group(4);
+			 String[] name = m.group(5).split(" ");
+			 return new Session(sessionId, roomId, hour, days, name[0], name[1]);
+		 }
+		 return null;
 	}
 }

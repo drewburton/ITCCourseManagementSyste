@@ -1,3 +1,7 @@
+import java.util.List;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -112,7 +116,7 @@ public class RegistrationScene {
     	String selectedSession = sessionListView.getSelectionModel().getSelectedItem();
         String selectedCourse = courseListView.getSelectionModel().getSelectedItem();
         
-        if (db.registerCourse(globalId, selectedCourse, Session.parseSession(selectedSession))) {
+        if (db.registerCourse(globalId, Session.parseSession(selectedSession))) {
         	registeredCoursesListView.getItems().add(selectedCourse);
         } 
         
@@ -153,6 +157,9 @@ public class RegistrationScene {
     }
     
     private void showSessionInfo(String course, boolean registered) {
-    	// TODO: implement
+    	ObservableList<Session> sessions = db.getSessionList(course, globalId, registered);
+    	sessionListView.getItems().clear();
+    	List<String> sessionStrings = sessions.stream().map(Session::toString).toList();
+    	sessionListView.setItems(FXCollections.observableArrayList(sessionStrings));
     }
 }

@@ -34,9 +34,9 @@ CREATE TABLE Sessions (
   Days varchar(5) not null,
   CourseId INT,
   Department varchar(3),
-  CONSTRAINT FK_Section_Instructor FOREIGN KEY (InstructorID) 
+  CONSTRAINT FK_Session_Instructor FOREIGN KEY (InstructorID) 
     REFERENCES Instructors (GlobalId),
-  CONSTRAINT FK_Section_Course FOREIGN KEY (department, courseid)
+  CONSTRAINT FK_Session_Course FOREIGN KEY (department, courseid)
     REFERENCES Courses (department, CourseId)
 );
 
@@ -49,34 +49,3 @@ CREATE TABLE Enrollment (
   CONSTRAINT FK_Enrollment_Section FOREIGN KEY (SessionId)
     REFERENCES Sessions (SessionId)
 );
-/*
--- can't take a class in the same room at the same time
-alter table Sessions add constraint CHK_Sessions_Room_Time
-    check (not exists(select * from sessions s1, sessions s2 where s1.RoomId = s2.RoomId and s1.StartTime = s2.StartTime));
-
--- students can't enroll in two courses at the same time
-ALTER TABLE Enrollment ADD CONSTRAINT CHK_EnrolledTime
-check ((select count(*)
-    from (sessions s1 inner join sessions s2 on
-        s1.StartTime = s2.StartTime and s1.SessionId <> s2.SessionId), Enrollment
-    where enrollment.SessionId = s1.SessionId or Enrollment.SessionId = s2.SessionId
-        group by enrollment.StudentGlobalId) < 2);
-
--- students can't enroll in the same course twice
-
--- teachers can't teach two classes at the same time
-alter table sessions add constraint CHK_Teaching_Time
-    check (not exists(select * from Sessions s1, sessions s2 where s1.TeacherId = s2.TeacherId and s1.StartTime = s2.StartTime));
-
--- globalid needs to be unique for both students and professors
-alter table Students add constraint CHK_Students_Professors_Id
-    check ((select count(*) from (select * from Instructors p, students s where p.GlobalId = s.GlobalId)) = 0);
-alter table Instructors add constraint CHK_Professors_Students_Id
-    check ((select count(*) from (select * from Instructors p, students s where p.GlobalId = s.GlobalId)) = 0);
-
--- students cannot enroll in more than 21 credits at a time
-ALTER TABLE Students ADD CONSTRAINT CHK_EnrolledCredits
-  CHECK ((SELECT SUM(CreditHours)
-          FROM Courses, Sessions s INNER JOIN Enrollment e ON s.SessionId = e.SessionId
-            WHERE e.StudentGlobalId = Students.GlobalId and s.CourseId = Courses.CourseId) <= 21);
-*/

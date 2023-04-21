@@ -125,18 +125,31 @@ public class DatabaseAccess {
 
 	}
 	
-	public ObservableList<Session> getSessionList(String course) {
-		// TODO: finish
+	public ObservableList<Session> getSessionList(String course, String globalId, boolean registered) {
 		reopenConnectionIfClosed();
+
+		String query;
+		if (registered) {
+			query = "select s.sessionId, roomId, hour, days, firstName, lastName from Sessions s, Instructors, Enrollment e where"
+				+ " InstructorId = GlobalId and s.sessionId = e.sessionid and StudentGlobalId = \'" + globalId + "\' and department || ' ' || courseId = \'" + course + "\'";
+		} else {
+			query = "select sessionId, roomId, hour, days, firstName, lastName from Sessions, Instructors where"
+				+ " InstructorId = GlobalId and department || ' ' || courseId = \'" + course + "\'";
+		}
 		
-		String query = "";
 		
 		try {
 			Statement stmt = dbConn.createStatement();
 		    ResultSet rs = stmt.executeQuery(query);
 		    ObservableList<Session> sessions = FXCollections.observableArrayList();
 		    while (rs.next()) {
-		    	Session s = new Session(0, 0, 0, "", "", "");
+		    	int sessionId = rs.getInt("sessionId");
+		    	int roomId = rs.getInt("roomId");
+		    	int hour = rs.getInt("hour");
+		    	String days = rs.getString("days");
+		    	String fname = rs.getString("firstName");
+		    	String lname = rs.getString("lastName");
+		    	Session s = new Session(sessionId, roomId, hour, days, fname, lname);
 		    	sessions.add(s);
 		    }
 		    return sessions;
@@ -148,12 +161,19 @@ public class DatabaseAccess {
 		}
 	}
 	
-	public boolean registerCourse(String globalId, String course, Session session) {
+	public boolean registerCourse(String globalId, Session session) {
 		// TODO: implement
+		// check not enrolled in course
+		// check time of session
+		// check number of credits
+		if (checkCourseEnrollment(globalId, session) && checkSessionTime(globalId, session) && checkTotalCredits(globalId, session)) {
+			
+		}
 		return false;
 	}
 
 	public void unregisterCourse(String globalId, String course) {
+		reopenConnectionIfClosed();
 		// TODO: implement
 	}
 	
@@ -177,6 +197,48 @@ public class DatabaseAccess {
 			System.out.println("registered courses retrieval SQL query failed");
 			System.out.println(query);
 			return FXCollections.observableArrayList();
+		}
+	}
+	
+	private boolean checkCourseEnrollment(String globalId, Session session) {
+		reopenConnectionIfClosed();
+	}
+	
+	private boolean checkSessionTime(String globalId, Session session) {
+		reopenConnectionIfClosed();
+		
+		String query = "select count(*) overlappingSections from sessions s, enrollment e where "
+				+ "s.sessionid = e.sessionid and e.studentglobalid = \'" + globalId + "\'"
+				+ " and s.hour in (select s2.hour from sessions s2 where s2.sessionId = \'" + session.getSessionId() + "\'";
+		try {
+			Statement stmt = dbConn.createStatement();
+		    ResultSet rs = stmt.executeQuery(query);
+		    rs.next();
+		    return rs.getInt("overlappingSections") == 0;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("check session time SQL query failed");
+			System.out.println(query);
+			return false;
+		}
+	}
+	
+	private boolean checkTotalCredits(String globalId, Session session) {
+		reopenConnectionIfClosed();
+		String courseCreditHoursQuery = "select creditHours from sessions s, courses c where s.sessionid = \'" + session.getSessionId() + "\' and s.courseId = c.courseId";
+		String totalCreditHoursQuery = "select sum(creditHours) totalCreditHours from sessions s, enrollment e, courses c where "
+				+ "e.studentGlobalId = \'" + globalId + "\' and e.sessionid = s.sessionid and s.courseid = c.courseid";
+		try {
+			Statement stmt = dbConn.createStatement();
+		    ResultSet tchrs = stmt.executeQuery(totalCreditHoursQuery);
+		    ResultSet cchrs = stmt.executeQuery(courseCreditHoursQuery);
+		    tchrs.next();
+		    cchrs.next();
+		    return tchrs.getInt("totalCreditHours") <= 21 - cchrs.getInt("creditHours");
+		} catch (SQLException e) {
+			e.printStackTrace();
+			System.out.println("total credits retrieval SQL query failed");
+			return false;
 		}
 	}
 	

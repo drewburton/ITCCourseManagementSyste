@@ -1,56 +1,69 @@
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-
-import java.util.Arrays;
-import java.util.List;
+import javafx.scene.paint.Color;
+import javafx.scene.control.TextField;
+import javafx.scene.control.PasswordField;
+import javafx.animation.KeyFrame;
+import javafx.util.Duration;
+import javafx.animation.Timeline;
 
 @FunctionalInterface
 interface LoginFunction {
-	void login(String globalId);
+	boolean login(String globalId, String password);
 }
 
 public class StudentSelectScene {
 	private Scene scene;
 	
-	private DatabaseAccess db;
-
-	private ListView<String> idListView;
-	
-	StudentSelectScene(DatabaseAccess db) {
-		this.db = db;
-	}
-	
 	public void setScene(LoginFunction func) {
-		Label idLabel = new Label("Choose a globalId");
+		Label idLabel = new Label("Enter your username and password");
 		
-		idListView = new ListView<>();
-		idListView.setItems(db.getGlobalIds());
-	    idListView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+		TextField usernameTextField = new TextField();
+		usernameTextField.setPromptText("username");
 
-		Button enterButton = new Button("Enter");
-		enterButton.setOnAction(event -> func.login(idListView.getSelectionModel().getSelectedItem()));
+		PasswordField passwordField = new PasswordField();
+		passwordField.setPromptText("password");
+	
+		Label errorLabel = new Label("Incorrect username or password");
+		errorLabel.setTextFill(Color.RED);
+		errorLabel.setVisible(false);
+	
+		Timeline timeline = new Timeline();
+		KeyFrame showErrorLabel = new KeyFrame(Duration.seconds(3), event -> {
+			errorLabel.setVisible(false);
+			timeline.stop();
+		});
+		timeline.getKeyFrames().add(showErrorLabel);
+		timeline.setCycleCount(3);
+				
+		Button loginButton = new Button("Login");
+		loginButton.setOnAction(event -> {
+			if (!func.login(usernameTextField.getText(), passwordField.getText())) {
+				errorLabel.setVisible(true);
+				timeline.play();
+			}
+		});
 		
 		Button exitButton = new Button("Exit");
 		exitButton.setOnAction(event -> Platform.exit());
+	
+
 		
 		// Set up UI layout
-         HBox buttonBox = new HBox(10, enterButton, exitButton);
+         HBox buttonBox = new HBox(10, loginButton, exitButton);
 
-         VBox centerBox = new VBox(10, idLabel, idListView, buttonBox);
+         VBox centerBox = new VBox(10, idLabel, usernameTextField, passwordField, buttonBox, errorLabel);
+         centerBox.setAlignment(Pos.CENTER);
          centerBox.setPadding(new Insets(10));
           
-         HBox.setHgrow(enterButton, Priority.ALWAYS);
+         HBox.setHgrow(loginButton, Priority.ALWAYS);
          HBox.setHgrow(exitButton, Priority.ALWAYS);
 
          scene = new Scene(centerBox, 400, 300);

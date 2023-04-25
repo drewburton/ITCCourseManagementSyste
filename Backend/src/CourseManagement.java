@@ -3,14 +3,23 @@ import java.sql.SQLException;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
+import java.util.HashMap;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
 /**
  * The measurement units for graphics in Java are all in pixels
  */
 public class CourseManagement extends Application {
+	private static HashMap<String, String> passwordMap = new HashMap<>();
 
     
     @Override // Override the start method in the Application class
     public void start(Stage primaryStage) {
+    	if (passwordMap.isEmpty())
+    		parsePasswords();
+    	
     	DatabaseAccess db;
 		try {
 			db = new DatabaseAccess();
@@ -20,7 +29,7 @@ public class CourseManagement extends Application {
 		}
 	
 		RegistrationScene registrationScene = new RegistrationScene(db);
-		StudentSelectScene studentSelectScene = new StudentSelectScene(db);
+		StudentSelectScene studentSelectScene = new StudentSelectScene();
 		
 		registrationScene.setScene(new ReturnFunction() {
 			public void returnToLogin() {
@@ -28,11 +37,13 @@ public class CourseManagement extends Application {
 			}
 		});
 		studentSelectScene.setScene(new LoginFunction() {
-			public void login(String globalId) {
-				if (globalId != null) {
+			public boolean login(String globalId, String password) {
+				if (globalId != null && passwordMap.containsKey(globalId) && passwordMap.get(globalId).equals(password)) {
 					registrationScene.setCurrentGlobalId(globalId);
 					primaryStage.setScene(registrationScene.getScene());
+					return true;
 				}
+				return false;
 			}
 		});
 		
@@ -45,6 +56,18 @@ public class CourseManagement extends Application {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+    }
+    
+    private static void parsePasswords() {
+    	File f = new File(System.getProperty("user.dir") + "\\src\\LoginInfo.txt");
+    	try (Scanner s = new Scanner(f)) {
+    		while (s.hasNextLine()) {
+    			String[] loginInfo = s.nextLine().split(",");
+    			passwordMap.put(loginInfo[0], loginInfo[1]);
+    		}
+    	} catch (FileNotFoundException e) {
+    		System.out.println("Could not parse password file");
+    	}
     }
 
     /**

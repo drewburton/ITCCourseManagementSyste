@@ -1,5 +1,5 @@
 --challenge query 1
-SELECT Title, (Department || courseId) as course_Identifier 
+SELECT Title, (Department || ' ' || courseId) as course_Identifier 
 FROM Courses 
 WHERE Courses.CourseId in 
 (SELECT Courses.CourseId FROM Courses, Sessions WHERE Courses.CourseId=Sessions.CourseId and Sessions.SessionId in 
